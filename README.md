@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# tramitacyl-catalog-service
-=======
 # Scraper de Ayudas Públicas
 
 Scraper modular y extensible para obtener ayudas y convocatorias públicas de la Junta de Castilla y León.
