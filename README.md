@@ -1,116 +1,54 @@
-# Scraper de Ayudas Públicas
+# TramitaCyL Catalog Service
 
-Scraper modular y extensible para obtener ayudas y convocatorias públicas de la Junta de Castilla y León.
+Servicio de **scraping, normalización e ingesta** de datos públicos de la Junta de Castilla y León para la creación de un **catálogo estructurado de ayudas, becas, subvenciones y trámites administrativos**.
+
+Este servicio actúa como **pipeline de datos**: obtiene información desde fuentes oficiales, la transforma a un modelo estable y la persiste en **Supabase (PostgreSQL)** para su posterior consumo por otras aplicaciones.
+
+---
 
 ## 🚀 Características
 
-- **Modular y extensible**: Fácil añadir nuevos organismos
-- **CLI completa**: Interfaz de línea de comandos con múltiples opciones
-- **API programática**: Función `runScraping()` reutilizable
-- **Almacenamiento JSON**: Persistencia local con deduplicación
-- **Filtros avanzados**: Por tipo, ámbito, fechas, palabras clave
-- **Logging detallado**: Con colores y progreso
-- **Manejo robusto de errores**: Reintentos automáticos
+- **Arquitectura modular y extensible**
+  - Scrapers desacoplados por fuente
+  - Normalización independiente del origen
+- **Ingesta directa en Supabase**
+  - Uso de Service Role
+  - Upserts idempotentes
+- **Modelo de datos unificado**
+  - Independiente de la estructura HTML original
+- **Ejecución controlada**
+  - Pensado para uso manual, cron o pipelines
+- **Separación de responsabilidades**
+  - Scraping ≠ API ≠ frontend
+- **Catálogo público de solo lectura**
+  - Escritura restringida a este servicio
 
-## 📦 Instalación
+---
 
-```bash
-npm install
-```
+## 🎯 Objetivo
 
-## 🎯 Uso
+Proveer una **fuente de datos fiable y actualizada** sobre ayudas y trámites públicos, evitando:
 
-### Desde Terminal
+- dependencias de scraping desde frontend,
+- duplicación de lógica en distintas apps,
+- inconsistencias entre fuentes,
+- mantenimiento manual de catálogos.
 
-```bash
-# Scraping básico
-npm run scrape
+El servicio está diseñado como **componente reutilizable**, no como script puntual.
 
-# Con filtros
-npm run scrape -- --tipo=subvencion --ambito=cultura --estado=abierta
+---
 
-# Ver estadísticas
-npm run stats
+## Flujo de datos
 
-# Ayuda completa
-npm start -- --help
-```
-
-### Desde App Node.js
-
-```javascript
-import { runScraping } from './src/index.js';
-
-// Scraping básico
-const resultados = await runScraping({ 
-  source: 'junta-cyl' 
-});
-
-// Con filtros avanzados
-const ayudasRecientes = await runScraping({
-  source: 'junta-cyl',
-  filters: {
-    tipo: 'subvencion',
-    fechaDesde: '01/01/2024',
-    ambito: 'cultura'
-  },
-  updateStorage: true
-});
-```
-
-## 📁 Estructura del Proyecto
-
-```
-src/
-├── scrapers/          # Lógica de scraping específica
-├── parsers/           # Parseo de HTML a datos normalizados
-├── services/          # Orquestación y servicios
-├── storage/           # Almacenamiento en JSON
-├── config/            # Configuración de fuentes
-├── utils/             # Utilidades HTTP
-├── types/             # Tipos de datos
-└── index.js           # Script principal
-```
-
-## 🔧 Configuración
-
-El scraper se configura a través del archivo `src/config/sources.js`, donde se definen:
-
-- URLs de las fuentes
-- Selectores CSS
-- Configuración de paginación
-- Tiempos de espera
-
-## 📊 Formato de Datos
-
-Cada ayuda tiene la siguiente estructura:
-
-```javascript
-{
-  "id": "junta-cyl-abc12345",
-  "titulo": "Ayuda para proyectos culturales 2024",
-  "organismo": "Junta de Castilla y León",
-  "tipo": "subvencion",
-  "ambito": "cultura",
-  "fechaPublicacion": "2024-01-15T00:00:00.000Z",
-  "fechaLimite": "2024-03-01T23:59:59.000Z",
-  "descripcion": "Convocatoria de ayudas para...",
-  "url": "https://...",
-  "estado": "abierta",
-  "fechaScraping": "2024-01-20T10:30:00.000Z"
-}
-```
-
-## 🔄 Extensión
-
-Para añadir un nuevo organismo:
-
-1. Crear scraper en `src/scrapers/NuevoOrganismoScraper.js`
-2. Crear parser en `src/parsers/NuevoOrganismoParser.js`
-3. Añadir configuración en `src/config/sources.js`
-4. Registrar en `src/services/ScrapingService.js`
-
-## 📄 Licencia
-
-MIT
->>>>>>> 83948a9 (Initial commit: Tramitacyl catalog scraping service)
+```text
+Fuente oficial (Junta de Castilla y León)
+              ↓
+       Scraping controlado
+              ↓
+     Parseo y extracción
+              ↓
+     Normalización de datos
+              ↓
+     Validación y limpieza
+              ↓
+   Supabase (PostgreSQL)
