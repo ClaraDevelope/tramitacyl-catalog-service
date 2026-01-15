@@ -137,6 +137,9 @@ export class SupabaseRestClient {
       deadline_text: deadlineResult.text,
       deadline_date: deadlineResult.date,
       published_at: publishedResult.date,
+      // Nuevos campos de enriquecimiento
+      tags: ayuda.tags || [],
+      keywords: ayuda.keywords || [],
       raw: ayuda
     };
   }

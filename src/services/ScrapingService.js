@@ -21,6 +21,17 @@ export class ScrapingService {
     // Check if JSON backup is enabled
     this.saveLocalJson = options.saveLocalJson === true;
     
+    // Enriquecimiento con IA
+    this.useAi = options.useAi === true || process.env.USE_AI_ENRICHMENT === 'true';
+    this.aiConfig = {
+      enabled: this.useAi,
+      provider: process.env.AI_PROVIDER || 'openai',
+      apiKey: process.env.AI_API_KEY,
+      model: process.env.AI_MODEL || 'gpt-3.5-turbo',
+      maxTokens: parseInt(process.env.AI_MAX_TOKENS) || 500,
+      temperature: parseFloat(process.env.AI_TEMPERATURE) || 0.1
+    };
+    
     // Initialize Supabase repository for primary storage (only if env vars are set)
     this.useSupabase = process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (this.useSupabase) {
@@ -29,6 +40,12 @@ export class ScrapingService {
       testSupabaseConnection();
     } else {
       console.log(chalk.yellow('⚠️  Supabase credentials not found, using local JSON storage only'));
+    }
+    
+    if (this.useAi) {
+      console.log(chalk.blue('🤖 AI enrichment enabled'));
+    } else {
+      console.log(chalk.blue('📝 Using deterministic tagging'));
     }
   }
 
@@ -45,8 +62,13 @@ export class ScrapingService {
       
       // Step 2: Parse HTML to extract ayudas
       const allAyudas = [];
+      const enrichmentOptions = {
+        useAi: this.useAi,
+        aiConfig: this.aiConfig
+      };
+      
       for (const html of htmlPages) {
-        const ayudas = this.parsers[source].parse(html);
+        const ayudas = await this.parsers[source].parse(html, enrichmentOptions);
         allAyudas.push(...ayudas);
       }
       

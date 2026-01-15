@@ -82,8 +82,18 @@ export class JsonStorage {
     return (
       existing.titulo !== nueva.titulo ||
       existing.fechaLimite !== nueva.fechaLimite ||
-      existing.estado !== nueva.estado
+      existing.estado !== nueva.estado ||
+      existing.descripcion !== nueva.descripcion ||
+      !this.arraysEqual(existing.tags || [], nueva.tags || []) ||
+      !this.arraysEqual(existing.keywords || [], nueva.keywords || [])
     );
+  }
+
+  arraysEqual(arr1, arr2) {
+    if (arr1.length !== arr2.length) return false;
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+    return sorted1.every((val, index) => val === sorted2[index]);
   }
 
   async findBy(filters = {}) {

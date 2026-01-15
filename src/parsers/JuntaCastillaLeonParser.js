@@ -7,17 +7,21 @@ export class JuntaCastillaLeonParser extends BaseParser {
     super(config);
   }
 
-  parse(html) {
+  async parse(html, enrichmentOptions = {}) {
     const $ = cheerio.load(html);
     const ayudas = [];
     
+    const promises = [];
     $(this.config.selectors.listItems).each((index, element) => {
       const ayudaData = this.extractAyudaData($, element);
       if (ayudaData) {
-        const ayuda = Ayuda.createFromJuntaCastillaLeon(ayudaData);
-        ayudas.push(ayuda);
+        const promise = Ayuda.createFromJuntaCastillaLeon(ayudaData, enrichmentOptions);
+        promises.push(promise);
       }
     });
+    
+    const resolvedAyudas = await Promise.all(promises);
+    ayudas.push(...resolvedAyudas);
     
     return ayudas;
   }
